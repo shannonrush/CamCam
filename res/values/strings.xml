@@ -4,5 +4,6 @@
     <string name="hello_world">Hello world!</string>
     <string name="menu_settings">Settings</string>
     <string name="title_activity_cam_cam">CamCam</string>
+    <string name="button_broadcast">Broadcast</string>
 
 </resources>

@@ -3,6 +3,7 @@ package com.rushdevo.camcam;
 import android.os.Bundle;
 import android.app.Activity;
 import android.view.Menu;
+import android.view.View;
 
 public class CamCamActivity extends Activity {
 
@@ -16,5 +17,9 @@ public class CamCamActivity extends Activity {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.activity_cam_cam, menu);
         return true;
+    }
+    
+    public void broadcast(View view) {
+    	
     }
 }
