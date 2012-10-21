@@ -1,38 +1,26 @@
 package com.rushdevo.camcam;
 
+import java.io.IOException;
+import java.net.ServerSocket;
+
 import android.app.Activity;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.IntentFilter;
-import android.net.wifi.p2p.WifiP2pManager;
-import android.net.wifi.p2p.WifiP2pManager.Channel;
+import android.net.nsd.NsdServiceInfo;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
-import android.view.View;
 
 
 public class CamCamActivity extends Activity {
-	
-	WifiP2pManager mManager;
-	Channel mChannel;
-	BroadcastReceiver mReceiver;
-	
-	IntentFilter mIntentFilter;
+	    
+    ServerSocket mServerSocket;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cam_cam);
         
-        mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
-        mChannel = mManager.initialize(this, getMainLooper(), null);
-        mReceiver = new WiFiDirectBroadcastReceiver(mManager, mChannel, this);
-        
-        mIntentFilter = new IntentFilter();
-        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
-        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
-        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
-        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+        // register the CamCam service on Network Service Discovery (NSD)
+        registerService(nextPort());
     }
 
     @Override
@@ -41,16 +29,28 @@ public class CamCamActivity extends Activity {
         return true;
     }
     
-    /* register the broadcast receiver with the intent values to be matched */
-    @Override
-    protected void onResume() {
-        super.onResume();
-        registerReceiver(mReceiver, mIntentFilter);
+    public void registerService(int port) {
+    	Log.d("CamCamActivity", "PORT: "+port);
+        // Create the NsdServiceInfo object, and populate it.
+        NsdServiceInfo serviceInfo  = new NsdServiceInfo();
+
+        // The name is subject to change based on conflicts
+        // with other services advertised on the same network.
+        serviceInfo.setServiceName("CamCam");
+        serviceInfo.setServiceType("_http._tcp.");
+        serviceInfo.setPort(port);
     }
-    /* unregister the broadcast receiver */
-    @Override
-    protected void onPause() {
-        super.onPause();
-        unregisterReceiver(mReceiver);
-    }    
+    
+    public int nextPort() {
+    	// get next available port
+        try {
+			mServerSocket = new ServerSocket(0);
+			return mServerSocket.getLocalPort();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+        return (Integer) null;
+    }
+    
+     
 }
