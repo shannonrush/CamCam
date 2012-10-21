@@ -192,5 +192,33 @@ public class CamCamActivity extends Activity {
         return (Integer) null;
     }
     
+    @Override
+    protected void onPause() {
+        tearDownService();
+        super.onPause();
+    }
+    
+    public void tearDownService() {
+        mNsdManager.unregisterService(mRegistrationListener);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerService(nextPort());
+        discoverServices();
+    }
+
+    @Override
+    protected void onDestroy() {
+        tearDown();
+        super.onDestroy();
+    }
+
+    public void tearDown() {
+        mNsdManager.unregisterService(mRegistrationListener);
+        mNsdManager.stopServiceDiscovery(mDiscoveryListener);
+    }
+    
      
 }
