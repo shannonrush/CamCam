@@ -1,6 +1,7 @@
 package com.rushdevo.camcam;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 
 import android.app.Activity;
@@ -8,6 +9,7 @@ import android.content.Context;
 import android.net.nsd.NsdManager;
 import android.net.nsd.NsdManager.DiscoveryListener;
 import android.net.nsd.NsdManager.RegistrationListener;
+import android.net.nsd.NsdManager.ResolveListener;
 import android.net.nsd.NsdServiceInfo;
 import android.os.Bundle;
 import android.util.Log;
@@ -21,6 +23,7 @@ public class CamCamActivity extends Activity {
     private String mServiceName;
 	private NsdManager mNsdManager;
 	private DiscoveryListener mDiscoveryListener;
+	private ResolveListener mResolveListener;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -32,6 +35,9 @@ public class CamCamActivity extends Activity {
         
         // register the CamCam service on Network Service Discovery (NSD)
         registerService(nextPort());
+        
+        // initialize resolve listener
+        initializeResolveListener();
         
         // initialize discovery listener
         initializeDiscoveryListener();
@@ -96,6 +102,30 @@ public class CamCamActivity extends Activity {
                 serviceInfo, NsdManager.PROTOCOL_DNS_SD, mRegistrationListener);
     }
     
+    public void initializeResolveListener() {
+        mResolveListener = new NsdManager.ResolveListener() {
+
+            @Override
+            public void onResolveFailed(NsdServiceInfo serviceInfo, int errorCode) {
+                // Called when the resolve fails.  Use the error code to debug.
+                Log.e("CamCamActivity", "Resolve failed" + errorCode);
+            }
+
+            @Override
+            public void onServiceResolved(NsdServiceInfo serviceInfo) {
+                Log.e("CamCamActivity", "Resolve Succeeded. " + serviceInfo);
+
+                if (serviceInfo.getServiceName().equals(mServiceName)) {
+                    Log.d("CamCamActivity", "Same IP.");
+                    return;
+                }
+                NsdServiceInfo mService = serviceInfo;
+                int port = mService.getPort();
+                InetAddress host = mService.getHost();
+            }
+        };
+    }
+    
     public void initializeDiscoveryListener() {
 
         // Instantiate a new DiscoveryListener
@@ -117,7 +147,7 @@ public class CamCamActivity extends Activity {
                     Log.d("CamCamActivity", "Same machine: " + mServiceName);
                 } else if (service.getServiceName().contains("CamCam")){
                 	Log.d("CamCamActivity", "CamCam found, attempting to resolve");
-//                    mNsdManager.resolveService(service, mResolveListener);
+                    mNsdManager.resolveService(service, mResolveListener);
                 } 
             }
 
