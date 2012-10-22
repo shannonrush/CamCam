@@ -3,6 +3,7 @@ package com.rushdevo.camcam;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
+import java.util.ArrayList;
 
 import android.app.Activity;
 import android.content.Context;
@@ -18,23 +19,24 @@ import android.view.Menu;
 
 public class CamCamActivity extends Activity {
 	    
-    ServerSocket mServerSocket;
+    private ServerSocket mServerSocket;
 	private RegistrationListener mRegistrationListener;
     private String mServiceName;
 	private NsdManager mNsdManager;
 	private DiscoveryListener mDiscoveryListener;
 	private ResolveListener mResolveListener;
-
+	private ArrayList<NsdServiceInfo> mDiscoveredServices;
+	
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_cam_cam);
+    	// reset discovered services
+    	mDiscoveredServices = new ArrayList<NsdServiceInfo>();
         
         // initialize the registration listener
         initializeRegistrationListener();
         
         // register the CamCam service on Network Service Discovery (NSD)
-        registerService(nextPort());
+       registerService(nextPort());
         
         // initialize resolve listener
         initializeResolveListener();
@@ -43,6 +45,9 @@ public class CamCamActivity extends Activity {
         initializeDiscoveryListener();
         
         discoverServices();
+        
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_cam_cam);
     }
 
     @Override
@@ -60,7 +65,7 @@ public class CamCamActivity extends Activity {
                 // resolve a conflict, so update the name you initially requested
                 // with the name Android actually used.
                 mServiceName = NsdServiceInfo.getServiceName();
-                Log.d("CamCamActivity","in onServiceRegistered with service name: "+mServiceName);
+                Log.d("CamCamActivity","service registered with service name: "+mServiceName);
             }
 
             @Override
@@ -86,6 +91,7 @@ public class CamCamActivity extends Activity {
     }
     
     public void registerService(int port) {
+    	Log.d("CamCamActivity", "IN REGISTER SERVICE");
         // Create the NsdServiceInfo object, and populate it.
         NsdServiceInfo serviceInfo  = new NsdServiceInfo();
 
@@ -141,6 +147,12 @@ public class CamCamActivity extends Activity {
             public void onServiceFound(NsdServiceInfo service) {
                 // A service was found!  Do something with it.
                 Log.d("CamCamActivity", "Service discovery success" + service);
+                mDiscoveredServices.add(service);
+                
+                for (NsdServiceInfo serviceInfo : mDiscoveredServices) {
+                    Log.d("CamCamActivity","DISCOVERED SERVICE "+serviceInfo.getServiceName());
+                }
+                
                 if (service.getServiceName().equals(mServiceName)) {
                     // The name of the service tells the user what they'd be
                     // connecting to.
@@ -156,6 +168,7 @@ public class CamCamActivity extends Activity {
                 // When the network service is no longer available.
                 // Internal bookkeeping code goes here.
                 Log.e("CamCamActivity", "service lost" + service);
+                mDiscoveredServices.remove(mDiscoveredServices.indexOf(service));
             }
 
             @Override
