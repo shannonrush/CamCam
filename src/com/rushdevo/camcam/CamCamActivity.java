@@ -5,7 +5,7 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 
-import android.app.Activity;
+import android.app.ListActivity;
 import android.content.Context;
 import android.net.nsd.NsdManager;
 import android.net.nsd.NsdManager.DiscoveryListener;
@@ -17,7 +17,7 @@ import android.util.Log;
 import android.view.Menu;
 
 
-public class CamCamActivity extends Activity {
+public class CamCamActivity extends ListActivity {
 	    
     private ServerSocket mServerSocket;
 	private RegistrationListener mRegistrationListener;
