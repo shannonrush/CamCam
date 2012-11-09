@@ -30,7 +30,6 @@ public class CamCamActivity extends ListActivity {
 	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
-        setContentView(R.layout.activity_cam_cam);
         
     	// reset discovered services
     	mDiscoveredServices = new ArrayList<NsdServiceInfo>();
@@ -39,7 +38,9 @@ public class CamCamActivity extends ListActivity {
         initializeRegistrationListener();
         
         // register the CamCam service on Network Service Discovery (NSD)
-       registerService(nextPort());
+        Log.d("CamCamActivity","calling registerService from onCreate");
+
+        registerService(nextPort());
         
         // initialize resolve listener
         initializeResolveListener();
@@ -50,7 +51,8 @@ public class CamCamActivity extends ListActivity {
         discoverServices();
         
         super.onCreate(savedInstanceState);
-        
+        setContentView(R.layout.activity_cam_cam);
+
         String[] values = new String[] { "Android", "iPhone", "WindowsMobile",
                 "Blackberry", "WebOS", "Ubuntu", "Windows7", "Max OS X",
                 "Linux", "OS/2" };
@@ -66,6 +68,7 @@ public class CamCamActivity extends ListActivity {
     }
     
     public void initializeRegistrationListener() {
+        Log.d("CamCamActivity","initializing registration listener");
         mRegistrationListener = new NsdManager.RegistrationListener() {
 
 			@Override
@@ -115,6 +118,8 @@ public class CamCamActivity extends ListActivity {
 
         mNsdManager.registerService(
                 serviceInfo, NsdManager.PROTOCOL_DNS_SD, mRegistrationListener);
+        Log.d("CamCamActivity","attempting to register: "+serviceInfo.getServiceName());
+
     }
     
     public void initializeResolveListener() {
@@ -227,6 +232,7 @@ public class CamCamActivity extends ListActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        Log.d("CamCamActivity","calling registerService from onResume");
         registerService(nextPort());
         discoverServices();
     }
