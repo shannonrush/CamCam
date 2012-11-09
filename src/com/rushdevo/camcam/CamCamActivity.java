@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 import android.app.ListActivity;
 import android.content.Context;
+import android.widget.ArrayAdapter;
 import android.net.nsd.NsdManager;
 import android.net.nsd.NsdManager.DiscoveryListener;
 import android.net.nsd.NsdManager.RegistrationListener;
@@ -27,8 +28,10 @@ public class CamCamActivity extends ListActivity {
 	private ResolveListener mResolveListener;
 	private ArrayList<NsdServiceInfo> mDiscoveredServices;
 	
-    @Override
+	@Override
     public void onCreate(Bundle savedInstanceState) {
+        setContentView(R.layout.activity_cam_cam);
+        
     	// reset discovered services
     	mDiscoveredServices = new ArrayList<NsdServiceInfo>();
         
@@ -47,7 +50,13 @@ public class CamCamActivity extends ListActivity {
         discoverServices();
         
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_cam_cam);
+        
+        String[] values = new String[] { "Android", "iPhone", "WindowsMobile",
+                "Blackberry", "WebOS", "Ubuntu", "Windows7", "Max OS X",
+                "Linux", "OS/2" };
+            ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_list_item_1, values);
+            setListAdapter(adapter);
     }
 
     @Override
@@ -232,6 +241,9 @@ public class CamCamActivity extends ListActivity {
         mNsdManager.unregisterService(mRegistrationListener);
         mNsdManager.stopServiceDiscovery(mDiscoveryListener);
     }
+
+
+
     
      
 }
