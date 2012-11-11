@@ -1,14 +1,30 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-         android:orientation="vertical"
-         android:layout_width="match_parent"
-         android:layout_height="match_parent"
-         android:paddingLeft="8dp"
-         android:paddingRight="8dp">
-         
-    <ListView android:id="@android:id/list"
-               android:layout_width="match_parent"
-               android:layout_height="match_parent"
-               android:layout_weight="1"
-               android:drawSelectorOnTop="false"/>
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingLeft="8dp"
+    android:paddingRight="8dp" >
+
+    <ListView
+        android:id="@android:id/list"
+        android:layout_width="match_parent"
+        android:layout_height="182dp"
+        android:drawSelectorOnTop="false" />
+
+    <EditText
+        android:id="@+id/device_name_field"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_weight="0.00"
+        android:ems="10"
+        android:hint="@string/device_name_hint" />
+
+    <Button
+        android:id="@+id/register_device_button"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_weight="0.00"
+        android:onClick="registerDevice"
+        android:text="@string/register_device_button" />
 
 </LinearLayout>

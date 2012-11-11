@@ -4,18 +4,32 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.HTTP;
+import org.apache.http.util.EntityUtils;
 
 import android.app.ListActivity;
 import android.content.Context;
-import android.widget.ArrayAdapter;
 import android.net.nsd.NsdManager;
 import android.net.nsd.NsdManager.DiscoveryListener;
 import android.net.nsd.NsdManager.RegistrationListener;
 import android.net.nsd.NsdManager.ResolveListener;
 import android.net.nsd.NsdServiceInfo;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
+import android.view.View;
+import android.widget.ArrayAdapter;
 
 
 public class CamCamActivity extends ListActivity {
@@ -27,45 +41,71 @@ public class CamCamActivity extends ListActivity {
 	private DiscoveryListener mDiscoveryListener;
 	private ResolveListener mResolveListener;
 	private ArrayList<NsdServiceInfo> mDiscoveredServices;
+	private ArrayAdapter<String> adapter;
+	private ArrayList<String> serviceNames;
+
+	// lifecycle
 	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
-        
-    	// reset discovered services
-    	mDiscoveredServices = new ArrayList<NsdServiceInfo>();
-        
+        initializeListeners();
+    	initializeServiceList();
+        super.onCreate(savedInstanceState);
+    }
+	
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d("CamCamActivity","calling registerService from onResume");
+        registerService(nextPort());
+        discoverServices();
+    }
+
+    @Override
+    protected void onDestroy() {
+        tearDown();
+        super.onDestroy();
+    }
+    
+    @Override
+    protected void onPause() {
+        tearDownService();
+        super.onPause();
+    }
+    
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.activity_cam_cam, menu);
+        return true;
+    }
+    
+    // initializers
+    
+    public void initializeListeners() {
         // initialize the registration listener
         initializeRegistrationListener();
-        
-        // register the CamCam service on Network Service Discovery (NSD)
-        Log.d("CamCamActivity","calling registerService from onCreate");
-
-        registerService(nextPort());
         
         // initialize resolve listener
         initializeResolveListener();
         
         // initialize discovery listener
         initializeDiscoveryListener();
-        
-        discoverServices();
-        
-        super.onCreate(savedInstanceState);
+    }
+    
+    public void initializeServiceList() {
         setContentView(R.layout.activity_cam_cam);
 
-        String[] values = new String[] { "Android", "iPhone", "WindowsMobile",
-                "Blackberry", "WebOS", "Ubuntu", "Windows7", "Max OS X",
-                "Linux", "OS/2" };
-            ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_list_item_1, values);
-            setListAdapter(adapter);
+    	// reset discovered services
+    	mDiscoveredServices = new ArrayList<NsdServiceInfo>();
+    	serviceNames = new ArrayList<String>();
+    	// adapter
+        adapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_list_item_1, serviceNames);
+        setListAdapter(adapter);
     }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.activity_cam_cam, menu);
-        return true;
-    }
+    
+    
+    // listeners
     
     public void initializeRegistrationListener() {
         Log.d("CamCamActivity","initializing registration listener");
@@ -162,6 +202,7 @@ public class CamCamActivity extends ListActivity {
                 // A service was found!  Do something with it.
                 Log.d("CamCamActivity", "Service discovery success" + service);
                 mDiscoveredServices.add(service);
+                serviceNames.add(service.getServiceName());
                 
                 for (NsdServiceInfo serviceInfo : mDiscoveredServices) {
                     Log.d("CamCamActivity","DISCOVERED SERVICE "+serviceInfo.getServiceName());
@@ -183,6 +224,7 @@ public class CamCamActivity extends ListActivity {
                 // Internal bookkeeping code goes here.
                 Log.e("CamCamActivity", "service lost" + service);
                 mDiscoveredServices.remove(mDiscoveredServices.indexOf(service));
+                serviceNames.remove(serviceNames.indexOf(service.getServiceName()));
             }
 
             @Override
@@ -219,37 +261,55 @@ public class CamCamActivity extends ListActivity {
         return (Integer) null;
     }
     
-    @Override
-    protected void onPause() {
-        tearDownService();
-        super.onPause();
-    }
+    // nsd lifecycle
     
     public void tearDownService() {
         mNsdManager.unregisterService(mRegistrationListener);
     }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Log.d("CamCamActivity","calling registerService from onResume");
-        registerService(nextPort());
-        discoverServices();
-    }
-
-    @Override
-    protected void onDestroy() {
-        tearDown();
-        super.onDestroy();
-    }
-
+    
     public void tearDown() {
         mNsdManager.unregisterService(mRegistrationListener);
         mNsdManager.stopServiceDiscovery(mDiscoveryListener);
     }
-
-
-
     
-     
+    // device registration
+    
+    public void registerDevice(View v) {
+    	Log.d("CamCamActivity","IN REGISTER DEVICE");
+    	new RegisterDeviceTask().execute();	
+    }
+    
+    public final class RegisterDeviceTask extends AsyncTask<String, Boolean, String> {
+    	@Override
+        protected String doInBackground(String...myParams) {
+            String result = "";
+            try {
+                HttpClient client = new DefaultHttpClient();  
+                String postURL = "http://www.epiccamcam.com/devices.json";
+                //String postURL = "http://10.0.1.8:3000/devices.json";
+                HttpPost post = new HttpPost(postURL); 
+                List<NameValuePair> params = new ArrayList<NameValuePair>();
+                params.add(new BasicNameValuePair("device[name]", "devicename"));
+                params.add(new BasicNameValuePair("device[user_id]", "1"));
+                UrlEncodedFormEntity ent = new UrlEncodedFormEntity(params,HTTP.UTF_8);
+                post.setEntity(ent);
+                HttpResponse responsePOST = client.execute(post);  
+                HttpEntity resEntity = responsePOST.getEntity();  
+                if (resEntity != null) {
+                	result = EntityUtils.toString(resEntity);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }            
+            Log.i("RESPONSE",result);
+            return result;
+        }
+    	
+    	@Override
+        protected void onPostExecute(String result) {
+            publishProgress(false);
+            // Do something with result in your activity
+        }
+    }
+    
 }

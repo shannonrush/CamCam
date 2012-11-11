@@ -1,8 +1,9 @@
 <resources>
 
     <string name="app_name">CamCam</string>
-    <string name="hello_world">Hello world!</string>
     <string name="menu_settings">Settings</string>
     <string name="title_activity_cam_cam">CamCam</string>
+    <string name="register_device_button">Register Device</string>
+    <string name="device_name_hint">Device Name</string>
 
 </resources>
