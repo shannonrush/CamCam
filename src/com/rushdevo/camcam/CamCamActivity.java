@@ -21,6 +21,7 @@ import org.json.JSONObject;
 
 import android.app.ListActivity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.nsd.NsdManager;
 import android.net.nsd.NsdManager.DiscoveryListener;
@@ -273,8 +274,8 @@ public class CamCamActivity extends ListActivity {
                 // When the network service is no longer available.
                 // Internal bookkeeping code goes here.
                 Log.e("CamCamActivity", "service lost" + service);
-                mDiscoveredServices.remove(mDiscoveredServices.indexOf(service));
-                serviceNames.remove(serviceNames.indexOf(service.getServiceName()));
+//                mDiscoveredServices.remove(mDiscoveredServices.indexOf(service));
+//                serviceNames.remove(serviceNames.indexOf(service.getServiceName()));
             }
 
             @Override
@@ -409,6 +410,8 @@ public class CamCamActivity extends ListActivity {
     
     // push video feed
     public void pushFeed(View view) {
-    	
+    	Intent intent = new Intent(this, ProvideFeedActivity.class);
+        startActivity(intent);      
+        finish();
     }
 }

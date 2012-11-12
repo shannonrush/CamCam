@@ -6,5 +6,7 @@
     <string name="register_device_button">Register Device</string>
     <string name="device_name_hint">Device Name</string>
     <string name="push_feed_button">Push Video Feed</string>
+    <string name="title_activity_provide_feed">Provide Video Feed</string>
+    <string name="hello_world">Hello world!</string>
 
 </resources>
