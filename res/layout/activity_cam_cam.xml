@@ -27,4 +27,18 @@
         android:onClick="registerDevice"
         android:text="@string/register_device_button" />
 
+    <TextView
+        android:id="@+id/registered_device_text"
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <Button
+        android:id="@+id/push_feed_button"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_weight="0.00"
+        android:onClick="pushFeed"
+        android:text="@string/push_feed_button" />
+
 </LinearLayout>

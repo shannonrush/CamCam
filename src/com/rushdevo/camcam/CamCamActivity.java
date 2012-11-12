@@ -16,9 +16,12 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.app.ListActivity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.nsd.NsdManager;
 import android.net.nsd.NsdManager.DiscoveryListener;
 import android.net.nsd.NsdManager.RegistrationListener;
@@ -30,6 +33,9 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
 
 
 public class CamCamActivity extends ListActivity {
@@ -43,6 +49,8 @@ public class CamCamActivity extends ListActivity {
 	private ArrayList<NsdServiceInfo> mDiscoveredServices;
 	private ArrayAdapter<String> adapter;
 	private ArrayList<String> serviceNames;
+	//private String DOMAIN = "epiccamcam.com";
+	private String DOMAIN = "10.0.1.8:3000";
 
 	// lifecycle
 	
@@ -50,6 +58,7 @@ public class CamCamActivity extends ListActivity {
     public void onCreate(Bundle savedInstanceState) {
         initializeListeners();
     	initializeServiceList();
+    	initializeDeviceRegistrationStatus();
         super.onCreate(savedInstanceState);
     }
 	
@@ -104,6 +113,47 @@ public class CamCamActivity extends ListActivity {
         setListAdapter(adapter);
     }
     
+    public void initializeDeviceRegistrationStatus() {
+        SharedPreferences prefs = getPreferences(MODE_PRIVATE);
+        String deviceID = prefs.getString("deviceID", null);
+        if (deviceID != null) {
+        	hideRegistrationElements(prefs.getString("deviceName", null));
+        } else {
+        	showRegistrationElements();
+        }
+    }
+    
+    // ui
+    
+    public void showRegistrationElements() {
+        // show ui elements to register device
+        Button registerButton = (Button)findViewById(R.id.register_device_button);
+        EditText nameField = (EditText)findViewById(R.id.device_name_field);
+        registerButton.setVisibility(View.VISIBLE);
+        nameField.setVisibility(View.VISIBLE);
+        
+        // hide text view displaying registered status and name
+        TextView registeredDeviceText = (TextView)findViewById(R.id.registered_device_text);
+        Button pushFeedButton = (Button)findViewById(R.id.push_feed_button);
+        registeredDeviceText.setText("");
+        registeredDeviceText.setVisibility(View.GONE);
+        pushFeedButton.setVisibility(View.GONE);
+    }
+    
+    public void hideRegistrationElements(String deviceName) {
+        // hide ui elements to register device
+        Button registerButton = (Button)findViewById(R.id.register_device_button);
+        EditText nameField = (EditText)findViewById(R.id.device_name_field);
+        registerButton.setVisibility(View.GONE);
+        nameField.setVisibility(View.GONE);
+        
+        // show text view displaying registered status and name
+        TextView registeredDeviceText = (TextView)findViewById(R.id.registered_device_text);
+        Button pushFeedButton = (Button)findViewById(R.id.push_feed_button);
+        registeredDeviceText.setText("Device registered as '"+deviceName+"'");
+        registeredDeviceText.setVisibility(View.VISIBLE);
+        pushFeedButton.setVisibility(View.VISIBLE);
+    }
     
     // listeners
     
@@ -271,7 +321,7 @@ public class CamCamActivity extends ListActivity {
         mNsdManager.unregisterService(mRegistrationListener);
         mNsdManager.stopServiceDiscovery(mDiscoveryListener);
     }
-    
+        
     // device registration
     
     public void registerDevice(View v) {
@@ -282,14 +332,15 @@ public class CamCamActivity extends ListActivity {
     public final class RegisterDeviceTask extends AsyncTask<String, Boolean, String> {
     	@Override
         protected String doInBackground(String...myParams) {
+    		EditText nameField = (EditText)findViewById(R.id.device_name_field);
+    		String deviceName = nameField.getText().toString();
             String result = "";
             try {
                 HttpClient client = new DefaultHttpClient();  
-                String postURL = "http://www.epiccamcam.com/devices.json";
-                //String postURL = "http://10.0.1.8:3000/devices.json";
+                String postURL = "http://"+DOMAIN+"/devices.json";
                 HttpPost post = new HttpPost(postURL); 
                 List<NameValuePair> params = new ArrayList<NameValuePair>();
-                params.add(new BasicNameValuePair("device[name]", "devicename"));
+                params.add(new BasicNameValuePair("device[name]", deviceName));
                 params.add(new BasicNameValuePair("device[user_id]", "1"));
                 UrlEncodedFormEntity ent = new UrlEncodedFormEntity(params,HTTP.UTF_8);
                 post.setEntity(ent);
@@ -308,8 +359,56 @@ public class CamCamActivity extends ListActivity {
     	@Override
         protected void onPostExecute(String result) {
             publishProgress(false);
-            // Do something with result in your activity
-        }
+            JSONObject json = null;
+			try {
+				json = new JSONObject(result);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+			
+            SharedPreferences prefs = getPreferences(MODE_PRIVATE);
+            SharedPreferences.Editor editor = prefs.edit();
+            
+            // save id as deviceID
+            String deviceID = null;
+			try {
+				deviceID = json.getString("id");
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+            editor.putString("deviceID", deviceID);
+
+            // save name as deviceName
+            String deviceName = null;
+			try {
+				deviceName = json.getString("name");
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+            editor.putString("deviceName", deviceName);
+            
+            editor.commit();
+            Log.d("CamCamActivity", "SAVED NAME: "+prefs.getString("deviceName", null));
+            Log.d("CamCamActivity", "SAVED ID: "+prefs.getString("deviceID", null));
+            
+            // hide ui elements to register device
+            Button registerButton = (Button)findViewById(R.id.register_device_button);
+            EditText nameField = (EditText)findViewById(R.id.device_name_field);
+            registerButton.setVisibility(View.GONE);
+            nameField.setVisibility(View.GONE);
+            
+            // show text view displaying registered status and name
+            TextView registeredDeviceText = (TextView)findViewById(R.id.registered_device_text);
+            Button pushFeedButton = (Button)findViewById(R.id.push_feed_button);
+            registeredDeviceText.setText("Device registered as '"+deviceName+"'");
+            registeredDeviceText.setVisibility(View.VISIBLE);
+            pushFeedButton.setVisibility(View.VISIBLE);
+
+    	}
     }
     
+    // push video feed
+    public void pushFeed(View view) {
+    	
+    }
 }
