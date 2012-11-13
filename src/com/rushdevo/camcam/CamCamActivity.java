@@ -52,6 +52,8 @@ public class CamCamActivity extends ListActivity {
 	private ArrayList<String> serviceNames;
 	//private String DOMAIN = "epiccamcam.com";
 	private String DOMAIN = "10.0.1.8:3000";
+	
+	public static String DEVICE_ID = null;
 
 	// lifecycle
 	
@@ -116,8 +118,8 @@ public class CamCamActivity extends ListActivity {
     
     public void initializeDeviceRegistrationStatus() {
         SharedPreferences prefs = getPreferences(MODE_PRIVATE);
-        String deviceID = prefs.getString("deviceID", null);
-        if (deviceID != null) {
+        DEVICE_ID = prefs.getString("deviceID", null);
+        if (DEVICE_ID != null) {
         	hideRegistrationElements(prefs.getString("deviceName", null));
         } else {
         	showRegistrationElements();
