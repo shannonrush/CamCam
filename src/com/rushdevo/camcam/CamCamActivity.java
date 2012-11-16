@@ -50,8 +50,8 @@ public class CamCamActivity extends ListActivity {
 	private ArrayList<NsdServiceInfo> mDiscoveredServices;
 	private ArrayAdapter<String> adapter;
 	private ArrayList<String> serviceNames;
-	//private String DOMAIN = "epiccamcam.com";
-	private String DOMAIN = "10.0.1.8:3000";
+	public static String DOMAIN = "www.epiccamcam.com";
+	//public static String DOMAIN = "10.0.1.28:3000";
 	
 	public static String DEVICE_ID = null;
 

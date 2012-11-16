@@ -5,8 +5,15 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.impl.client.DefaultHttpClient;
+
 import android.app.Activity;
 import android.media.MediaRecorder;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
@@ -16,9 +23,9 @@ import android.view.Window;
 import android.view.WindowManager;
 
 public class ProvideFeedActivity extends Activity implements SurfaceHolder.Callback {
-	MediaRecorder mRecorder;
-    SurfaceHolder mHolder;
-    boolean mPrepared = false;
+	MediaRecorder mediaRecorder;
+    SurfaceHolder surfaceHolder;
+    String filePath = null;
     
     @SuppressWarnings("deprecation")
 	@Override
@@ -28,39 +35,38 @@ public class ProvideFeedActivity extends Activity implements SurfaceHolder.Callb
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         getWindow().addFlags( WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON );
 
-        mRecorder = new MediaRecorder();
+        mediaRecorder = new MediaRecorder();
         initRecorder();
         setContentView(R.layout.activity_provide_feed);
 
         SurfaceView cameraView = (SurfaceView) findViewById(R.id.surface_camera);
-        mHolder = cameraView.getHolder();
-        mHolder.addCallback(this);
-        mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+        surfaceHolder = cameraView.getHolder();
+        surfaceHolder.addCallback(this);
+        surfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
     }
 
     private void initRecorder() {
-        mRecorder.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
-        mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-    	mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-        mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
-    	mRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.MPEG_4_SP);
-    	mRecorder.setOrientationHint(90);
-    	mRecorder.setVideoSize(1280, 720);
-    	mRecorder.setVideoFrameRate(30);
+        mediaRecorder.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
+        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+    	mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
+    	mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.MPEG_4_SP);
+    	mediaRecorder.setOrientationHint(90);
+    	mediaRecorder.setVideoSize(1280, 720);
+    	mediaRecorder.setVideoFrameRate(30);
 
     	
-    	String filePath = getOutputMediaFile().toString();
-        mRecorder.setOutputFile(filePath);
+    	filePath = getOutputMediaFile().toString();
+        mediaRecorder.setOutputFile(filePath);
         Log.d("ProvideFeedActivity", "FILEPATH: "+filePath);
     }
     
     private void prepareRecorder() {
     	Log.d("ProvideFeedActivity", "about to prepare");
-    	mRecorder.setPreviewDisplay(mHolder.getSurface());
+    	mediaRecorder.setPreviewDisplay(surfaceHolder.getSurface());
 
         try {
-            mRecorder.prepare();
-            mPrepared = true;
+            mediaRecorder.prepare();
             Log.d("ProvideFeedActivity", "right after prepare");        
         } catch (IllegalStateException e) {
         	Log.e("ProvideFeedActivity", e.toString());
@@ -75,10 +81,10 @@ public class ProvideFeedActivity extends Activity implements SurfaceHolder.Callb
     
     private void startRecording() {
     	Log.d("ProvideFeedActivity", "in startRecording");
-    	mRecorder.start();
+    	mediaRecorder.start();
     	// record some seconds of video then stop
 		long timeStamp = System.currentTimeMillis() / 1000;
-    	int videoLength = 15;
+    	int videoLength = 5;
     	int seconds = videoLength;
 		while (seconds > 0) {
 			int diff = videoLength - (int)((System.currentTimeMillis() / 1000) - timeStamp);
@@ -90,8 +96,47 @@ public class ProvideFeedActivity extends Activity implements SurfaceHolder.Callb
     
     private void stopRecording() {
     	Log.d("ProvideFeedActivity", "in stopRecording");
-    	mRecorder.reset();
-		mPrepared = false;
+    	new UploadRecordingTask().execute();
+    	mediaRecorder.reset();
+    	filePath = null;
+    }
+    
+    public final class UploadRecordingTask extends AsyncTask<String, Boolean, String> {
+		@Override
+		protected String doInBackground(String...myParams) {
+			Log.d("ProvideFeedActivity", "in uploadRecording");
+	    	// upload recording at filePath to epiccamcam to be saved as a Feed record - provide device_id and binary as stream
+			try {
+			    DefaultHttpClient httpclient = new DefaultHttpClient();
+			    File f = new File(filePath);
+
+			    HttpPost httpost = new HttpPost("http://"+CamCamActivity.DOMAIN+"/feeds.json");
+			    MultipartEntity entity = new MultipartEntity();
+			    entity.addPart("feed[stream]", new FileBody(f));
+			    httpost.setHeader("ContentType", "video/mp4");
+			    httpost.setEntity(entity);
+
+			    HttpResponse response;
+
+			    response = httpclient.execute(httpost);
+
+			    Log.d("httpPost", "form get: " + response.getStatusLine());
+
+			    if (entity != null) {
+			        entity.consumeContent();
+			    }
+			    return response.getStatusLine().toString();
+			} catch (Exception ex) {
+			    Log.d("FormReviewer", "Upload failed: " + ex.getMessage() +
+			        " Stacktrace: " + ex.getStackTrace());
+			    return "failed";
+			}
+		}
+    	
+    	@Override
+        protected void onPostExecute(String result) {
+    		Log.d("ProvideFeedActivity", "in onPostExecute: "+result);
+    	}
     }
     
     private static File getOutputMediaFile() {
@@ -105,7 +150,7 @@ public class ProvideFeedActivity extends Activity implements SurfaceHolder.Callb
         // Create the storage directory if it does not exist
         if (! mediaStorageDir.exists()){
             if (! mediaStorageDir.mkdirs()){
-                Log.d("MyCameraApp", "failed to create directory");
+                Log.d("ProvideFeedActivity", "failed to create directory");
                 return null;
             }
         }
@@ -128,7 +173,7 @@ public class ProvideFeedActivity extends Activity implements SurfaceHolder.Callb
     }
 
     public void surfaceDestroyed(SurfaceHolder holder) {
-        mRecorder.release();
+        mediaRecorder.release();
     }
   	
 }
