@@ -9,7 +9,10 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpParams;
 
 import android.app.Activity;
 import android.media.MediaRecorder;
@@ -104,21 +107,22 @@ public class ProvideFeedActivity extends Activity implements SurfaceHolder.Callb
     public final class UploadRecordingTask extends AsyncTask<String, Boolean, String> {
 		@Override
 		protected String doInBackground(String...myParams) {
-			Log.d("ProvideFeedActivity", "in uploadRecording");
-	    	// upload recording at filePath to epiccamcam to be saved as a Feed record - provide device_id and binary as stream
 			try {
+			    File file= new File(filePath);
+			    StringBody deviceID = new StringBody(CamCamActivity.DEVICE_ID);
+			    
 			    DefaultHttpClient httpclient = new DefaultHttpClient();
-			    File f = new File(filePath);
-
-			    HttpPost httpost = new HttpPost("http://"+CamCamActivity.DOMAIN+"/feeds.json");
+			    HttpPost httpPost = new HttpPost("http://"+CamCamActivity.DOMAIN+"/feeds.json");
 			    MultipartEntity entity = new MultipartEntity();
-			    entity.addPart("feed[stream]", new FileBody(f));
-			    httpost.setHeader("ContentType", "video/mp4");
-			    httpost.setEntity(entity);
+			    
+			    entity.addPart("feed[stream]", new FileBody(file));
+			    entity.addPart("feed[device_id]",deviceID);
+			    httpPost.setHeader("ContentType", "video/mp4");
+			    httpPost.setEntity(entity);
 
 			    HttpResponse response;
 
-			    response = httpclient.execute(httpost);
+			    response = httpclient.execute(httpPost);
 
 			    Log.d("httpPost", "form get: " + response.getStatusLine());
 
