@@ -5,12 +5,6 @@
     android:paddingLeft="8dp"
     android:paddingRight="8dp" >
 
-    <ListView
-        android:id="@android:id/list"
-        android:layout_width="match_parent"
-        android:layout_height="182dp"
-        android:drawSelectorOnTop="false" />
-
     <EditText
         android:id="@+id/device_name_field"
         android:layout_width="match_parent"
