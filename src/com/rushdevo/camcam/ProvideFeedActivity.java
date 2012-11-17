@@ -11,8 +11,6 @@ import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
 
 import android.app.Activity;
 import android.media.MediaRecorder;
@@ -58,19 +56,15 @@ public class ProvideFeedActivity extends Activity implements SurfaceHolder.Callb
     	mediaRecorder.setVideoSize(1280, 720);
     	mediaRecorder.setVideoFrameRate(30);
 
-    	
     	filePath = getOutputMediaFile().toString();
         mediaRecorder.setOutputFile(filePath);
-        Log.d("ProvideFeedActivity", "FILEPATH: "+filePath);
     }
     
     private void prepareRecorder() {
-    	Log.d("ProvideFeedActivity", "about to prepare");
     	mediaRecorder.setPreviewDisplay(surfaceHolder.getSurface());
 
         try {
             mediaRecorder.prepare();
-            Log.d("ProvideFeedActivity", "right after prepare");        
         } catch (IllegalStateException e) {
         	Log.e("ProvideFeedActivity", e.toString());
         } catch (IOException e) {
@@ -78,14 +72,11 @@ public class ProvideFeedActivity extends Activity implements SurfaceHolder.Callb
         } catch( Exception e) {
         	Log.e("prepareRecorder", e.toString());
         	}
-        Log.d("ProvideFeedActivity","after prepare");   
         startRecording();
     }
     
     private void startRecording() {
-    	Log.d("ProvideFeedActivity", "in startRecording");
     	mediaRecorder.start();
-    	// record some seconds of video then stop
 		long timeStamp = System.currentTimeMillis() / 1000;
     	int videoLength = 5;
     	int seconds = videoLength;
@@ -143,7 +134,7 @@ public class ProvideFeedActivity extends Activity implements SurfaceHolder.Callb
     	}
     }
     
-    private static File getOutputMediaFile() {
+    private File getOutputMediaFile() {
         // To be safe, you should check that the SDCard is mounted
         // using Environment.getExternalStorageState() before doing this.
 
@@ -169,7 +160,6 @@ public class ProvideFeedActivity extends Activity implements SurfaceHolder.Callb
     // SurfaceHolder Callbacks
 
     public void surfaceCreated(SurfaceHolder holder) {
-    	Log.d("ProvideFeedActivity", "in surfaceCreated");
     	prepareRecorder();
     }
 

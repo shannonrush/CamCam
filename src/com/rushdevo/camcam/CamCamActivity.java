@@ -72,15 +72,15 @@ public class CamCamActivity extends Activity {
         SharedPreferences prefs = getPreferences(MODE_PRIVATE);
         DEVICE_ID = prefs.getString("deviceID", null);
         if (DEVICE_ID != null) {
-        	hideRegistrationElements(prefs.getString("deviceName", null));
+        	elementsForRegisteredDevice(prefs.getString("deviceName", null));
         } else {
-        	showRegistrationElements();
+        	elementsForUnregisteredDevice();
         }
     }
     
     // ui
     
-    public void showRegistrationElements() {
+    public void elementsForUnregisteredDevice() {
         // show ui elements to register device
         Button registerButton = (Button)findViewById(R.id.register_device_button);
         EditText nameField = (EditText)findViewById(R.id.device_name_field);
@@ -89,13 +89,11 @@ public class CamCamActivity extends Activity {
         
         // hide text view displaying registered status and name
         TextView registeredDeviceText = (TextView)findViewById(R.id.registered_device_text);
-        Button pushFeedButton = (Button)findViewById(R.id.push_feed_button);
         registeredDeviceText.setText("");
         registeredDeviceText.setVisibility(View.GONE);
-        pushFeedButton.setVisibility(View.GONE);
     }
     
-    public void hideRegistrationElements(String deviceName) {
+    public void elementsForRegisteredDevice(String deviceName) {
         // hide ui elements to register device
         Button registerButton = (Button)findViewById(R.id.register_device_button);
         EditText nameField = (EditText)findViewById(R.id.device_name_field);
@@ -104,10 +102,8 @@ public class CamCamActivity extends Activity {
         
         // show text view displaying registered status and name
         TextView registeredDeviceText = (TextView)findViewById(R.id.registered_device_text);
-        Button pushFeedButton = (Button)findViewById(R.id.push_feed_button);
         registeredDeviceText.setText("Device registered as '"+deviceName+"'");
         registeredDeviceText.setVisibility(View.VISIBLE);
-        pushFeedButton.setVisibility(View.VISIBLE);
     }
     
  
@@ -180,26 +176,7 @@ public class CamCamActivity extends Activity {
             Log.d("CamCamActivity", "SAVED NAME: "+prefs.getString("deviceName", null));
             Log.d("CamCamActivity", "SAVED ID: "+prefs.getString("deviceID", null));
             
-            // hide ui elements to register device
-            Button registerButton = (Button)findViewById(R.id.register_device_button);
-            EditText nameField = (EditText)findViewById(R.id.device_name_field);
-            registerButton.setVisibility(View.GONE);
-            nameField.setVisibility(View.GONE);
-            
-            // show text view displaying registered status and name
-            TextView registeredDeviceText = (TextView)findViewById(R.id.registered_device_text);
-            Button pushFeedButton = (Button)findViewById(R.id.push_feed_button);
-            registeredDeviceText.setText("Device registered as '"+deviceName+"'");
-            registeredDeviceText.setVisibility(View.VISIBLE);
-            pushFeedButton.setVisibility(View.VISIBLE);
-
+            elementsForRegisteredDevice(deviceName);
     	}
-    }
-    
-    // push video feed
-    public void pushFeed(View view) {
-    	Intent intent = new Intent(this, ProvideFeedActivity.class);
-        startActivity(intent);      
-        finish();
     }
 }
