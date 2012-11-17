@@ -27,4 +27,12 @@
         android:layout_height="50dp"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
+    <Button
+        android:id="@+id/show_feeds_button"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_weight="0.00"
+        android:onClick="showFeeds"
+        android:text="@string/show_feeds_button" />
+
 </LinearLayout>

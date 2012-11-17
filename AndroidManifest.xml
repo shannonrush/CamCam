@@ -1,24 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.rushdevo.camcam"
     android:versionCode="1"
     android:versionName="1.0" >
 
-	<uses-sdk android:minSdkVersion="16"
+    <uses-sdk
+        android:minSdkVersion="16"
         android:targetSdkVersion="16" />
-    <uses-permission android:required="true" android:name="android.permission.INTERNET"/>
+
+    <uses-permission
+        android:name="android.permission.INTERNET"
+        android:required="true" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    
+
     <uses-feature android:name="android.hardware.camera" />
-    
+
     <application
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name=".CamCamActivity"
+            android:name="com.rushdevo.camcam.CamCamActivity"
             android:label="@string/title_activity_cam_cam" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -27,11 +32,17 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ProvideFeedActivity"
-            android:label="@string/title_activity_provide_feed">
-            
+            android:name="com.rushdevo.camcam.ProvideFeedActivity"
+            android:label="@string/title_activity_provide_feed" >
+        </activity>
+        <activity
+            android:name="com.rushdevo.camcam.ShowFeedsActivity"
+            android:label="@string/title_activity_show_feeds"
+            android:parentActivityName="com.rushdevo.camcam.CamCamActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.rushdevo.camcam.CamCamActivity" />
         </activity>
     </application>
 
 </manifest>
-

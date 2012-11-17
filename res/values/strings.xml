@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
 
     <string name="app_name">CamCam</string>
@@ -5,8 +6,9 @@
     <string name="title_activity_cam_cam">CamCam</string>
     <string name="register_device_button">Register Device</string>
     <string name="device_name_hint">Device Name</string>
-    <string name="push_feed_button">Push Video Feed</string>
-    <string name="title_activity_provide_feed">Provide Video Feed</string>
+    <string name="show_feeds_button">Show My Feeds</string>
     <string name="hello_world">Hello world!</string>
+    <string name="title_activity_provide_feed">Provide Feed</string>
+    <string name="title_activity_show_feeds">My Feeds</string>
 
 </resources>

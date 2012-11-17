@@ -32,9 +32,9 @@ import android.widget.TextView;
 public class CamCamActivity extends Activity {
 	    
 	//public static String DOMAIN = "www.epiccamcam.com";
-	public static String DOMAIN = "10.0.1.28:3000";
-	
+	public static String DOMAIN = "10.0.1.28:3000"; // development
 	public static String DEVICE_ID = null;
+	public static String USER_ID = "1"; // temporarily hard coded
 
 	// lifecycle
 	
@@ -178,5 +178,11 @@ public class CamCamActivity extends Activity {
             
             elementsForRegisteredDevice(deviceName);
     	}
+    }
+    
+    public void showFeeds(View v) {
+    	Intent intent = new Intent(this, ShowFeedsActivity.class);
+        startActivity(intent);      
+        finish();
     }
 }
