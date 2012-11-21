@@ -4,38 +4,48 @@
     android:versionCode="1"
     android:versionName="1.0" >
 
-    <uses-sdk android:minSdkVersion="9" android:targetSdkVersion="17" />
+    <uses-sdk
+        android:minSdkVersion="9"
+        android:targetSdkVersion="17" />
 
-    <uses-permission android:name="android.permission.INTERNET" android:required="true" />
+    <uses-permission
+        android:name="android.permission.INTERNET"
+        android:required="true" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <permission android:name="com.rushdevo.camcam.permission.C2D_MESSAGE" android:protectionLevel="signature" />
-	<uses-permission android:name="com.rushdevo.camcam.permission.C2D_MESSAGE" /> 
-	<uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
-	<uses-permission android:name="android.permission.GET_ACCOUNTS" />
-	<uses-permission android:name="android.permission.WAKE_LOCK" />
-    
+
+    <permission
+        android:name="com.rushdevo.camcam.permission.C2D_MESSAGE"
+        android:protectionLevel="signature" />
+
+    <uses-permission android:name="com.rushdevo.camcam.permission.C2D_MESSAGE" />
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
     <uses-feature android:name="android.hardware.camera" />
-    
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
-        
-        <receiver android:name="com.google.android.gcm.GCMBroadcastReceiver" android:permission="com.google.android.c2dm.permission.SEND" >
-  			<intent-filter>
-    			<action android:name="com.google.android.c2dm.intent.RECEIVE" />
-    			<action android:name="com.google.android.c2dm.intent.REGISTRATION" />
-    			<category android:name="com.rushdevo.camcam" />
-  			</intent-filter>
-		</receiver>
-	
-	    <service android:name=".GCMIntentService" />
-    
-	    <activity
+        <receiver
+            android:name="com.google.android.gcm.GCMBroadcastReceiver"
+            android:permission="com.google.android.c2dm.permission.SEND" >
+            <intent-filter>
+                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+                <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
+
+                <category android:name="com.rushdevo.camcam" />
+            </intent-filter>
+        </receiver>
+
+        <service android:name="com.rushdevo.camcam.GCMIntentService" />
+
+        <activity
             android:name="com.rushdevo.camcam.CamCamActivity"
             android:label="@string/title_activity_cam_cam" >
             <intent-filter>
@@ -56,9 +66,18 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.rushdevo.camcam.CamCamActivity" />
         </activity>
-        <receiver android:name="RegistrationReceiver" >
+
+        <receiver android:name="com.rushdevo.camcam.RegistrationReceiver" >
         </receiver>
+
+        <activity
+            android:name="com.rushdevo.camcam.DisplayFeedActivity"
+            android:label="@string/title_activity_display_feed"
+            android:parentActivityName="com.rushdevo.camcam.ShowFeedsActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.rushdevo.camcam.ShowFeedsActivity" />
+        </activity>
     </application>
 
 </manifest>
-

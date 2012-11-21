@@ -20,6 +20,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
 import android.app.ListActivity;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
@@ -166,10 +167,13 @@ public class ShowFeedsActivity extends ListActivity {
 			String status = (String)json.get("status");
 			Log.d("PollForFeedTask", "Poll result status: "+status);
 			if (status.equals("unavailable")) {
-				
 				new PollForFeedTask().execute();
 			} else if (status.equals("available")) {
 				Log.d("PollForFeedTask", "MP4 url: "+(String)json.get("video_url"));
+				Intent intent = new Intent(getApplicationContext(), DisplayFeedActivity.class);
+	        	intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+	        	intent.putExtra("videoURL", (String)json.get("video_url"));
+	            startActivity(intent);
 			}
 		}
 	}

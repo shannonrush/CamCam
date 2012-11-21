@@ -29,6 +29,8 @@ public class ProvideFeedActivity extends Activity implements SurfaceHolder.Callb
 	MediaRecorder mediaRecorder;
     SurfaceHolder surfaceHolder;
     String filePath = null;
+	int retries = 0;
+
     
     @SuppressWarnings("deprecation")
 	@Override
@@ -95,11 +97,9 @@ public class ProvideFeedActivity extends Activity implements SurfaceHolder.Callb
     	Log.d("ProvideFeedActivity", "in stopRecording");
     	new UploadRecordingTask().execute();
     	mediaRecorder.reset();
-    	filePath = null;
     }
     
     public final class UploadRecordingTask extends AsyncTask<String, Boolean, String> {
-    	int retries = 0;
 		@Override
 		protected String doInBackground(String...myParams) {
 			try {
@@ -126,18 +126,8 @@ public class ProvideFeedActivity extends Activity implements SurfaceHolder.Callb
 			    
 			    StatusLine statusLine = response.getStatusLine();
 			    int statusCode = statusLine.getStatusCode();
-			    
-			    if (statusCode == 500) { // TODO Test 
-			    	if (retries < 4) {
-			    		Log.d("UploadRecordingTask", "Internal Server Error, Retrying");
-				    	new UploadRecordingTask().execute();
-			    	} else {
-			    		Log.d("UploadingRecordingTask", "Internal Server Error, Retried max times, retrying recording");
-			        	Intent feedIntent = new Intent(getApplicationContext(), ProvideFeedActivity.class);
-			        	feedIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-			            startActivity(feedIntent);
-			    	}
-			    }
+			    Log.d("UploadRecordingTask", "POST response status: "+statusCode);
+			    	
 			    return response.getStatusLine().toString();
 			} catch (Exception ex) {
 			    Log.d("UploadRecordingTask", "Upload failed: " + ex.getMessage() +
@@ -149,6 +139,18 @@ public class ProvideFeedActivity extends Activity implements SurfaceHolder.Callb
     	@Override
         protected void onPostExecute(String result) {
     		Log.d("ProvideFeedActivity", "in onPostExecute: "+result);
+    		if (result.equals("failed")) {
+    			if (retries < 4) {
+		    		Log.d("UploadRecordingTask", "Internal Server Error, Retrying");
+		    		retries++;
+			    	new UploadRecordingTask().execute();
+		    	} else {
+		    		Log.d("UploadingRecordingTask", "Internal Server Error, Retried max times, retrying recording");
+		        	Intent feedIntent = new Intent(getApplicationContext(), ProvideFeedActivity.class);
+		        	feedIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		            startActivity(feedIntent);
+		    	}
+    		}
     	}
     }
     

@@ -10,5 +10,6 @@
     <string name="hello_world">Hello world!</string>
     <string name="title_activity_provide_feed">Provide Feed</string>
     <string name="title_activity_show_feeds">My Feeds</string>
+    <string name="title_activity_display_feed">Video Feed</string>
 
 </resources>
