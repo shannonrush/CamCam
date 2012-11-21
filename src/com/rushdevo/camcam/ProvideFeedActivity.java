@@ -6,6 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
@@ -13,6 +14,7 @@ import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.media.MediaRecorder;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -31,6 +33,7 @@ public class ProvideFeedActivity extends Activity implements SurfaceHolder.Callb
     @SuppressWarnings("deprecation")
 	@Override
     public void onCreate(Bundle savedInstanceState) {
+    	Log.d("ProvideFeedActivity", "in provide feed activity");
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -96,9 +99,11 @@ public class ProvideFeedActivity extends Activity implements SurfaceHolder.Callb
     }
     
     public final class UploadRecordingTask extends AsyncTask<String, Boolean, String> {
+    	int retries = 0;
 		@Override
 		protected String doInBackground(String...myParams) {
 			try {
+				Log.d("UploadRecordingTask", "in UploadRecordingTask");
 			    File file= new File(filePath);
 			    StringBody deviceID = new StringBody(CamCamActivity.DEVICE_ID);
 			    
@@ -115,14 +120,27 @@ public class ProvideFeedActivity extends Activity implements SurfaceHolder.Callb
 
 			    response = httpclient.execute(httpPost);
 
-			    Log.d("httpPost", "form get: " + response.getStatusLine());
-
 			    if (entity != null) {
 			        entity.consumeContent();
 			    }
+			    
+			    StatusLine statusLine = response.getStatusLine();
+			    int statusCode = statusLine.getStatusCode();
+			    
+			    if (statusCode == 500) { // TODO Test 
+			    	if (retries < 4) {
+			    		Log.d("UploadRecordingTask", "Internal Server Error, Retrying");
+				    	new UploadRecordingTask().execute();
+			    	} else {
+			    		Log.d("UploadingRecordingTask", "Internal Server Error, Retried max times, retrying recording");
+			        	Intent feedIntent = new Intent(getApplicationContext(), ProvideFeedActivity.class);
+			        	feedIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			            startActivity(feedIntent);
+			    	}
+			    }
 			    return response.getStatusLine().toString();
 			} catch (Exception ex) {
-			    Log.d("FormReviewer", "Upload failed: " + ex.getMessage() +
+			    Log.d("UploadRecordingTask", "Upload failed: " + ex.getMessage() +
 			        " Stacktrace: " + ex.getStackTrace());
 			    return "failed";
 			}

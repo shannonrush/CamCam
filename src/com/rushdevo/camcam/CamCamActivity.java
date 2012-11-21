@@ -125,10 +125,8 @@ public class CamCamActivity extends Activity {
         
         // hide text view displaying registered status and name
         TextView registeredDeviceText = (TextView)findViewById(R.id.registered_device_text);
-        Button showFeedsButton = (Button)findViewById(R.id.show_feeds_button);
         registeredDeviceText.setText("");
         registeredDeviceText.setVisibility(View.GONE);
-        showFeedsButton.setVisibility(View.GONE);
     }
     
     public void elementsForRegisteredDevice(String deviceName) {
@@ -140,10 +138,8 @@ public class CamCamActivity extends Activity {
         
         // show text view displaying registered status and name
         TextView registeredDeviceText = (TextView)findViewById(R.id.registered_device_text);
-        Button showFeedsButton = (Button)findViewById(R.id.show_feeds_button);
         registeredDeviceText.setText("Device registered as '"+deviceName+"'");
         registeredDeviceText.setVisibility(View.VISIBLE);
-        showFeedsButton.setVisibility(View.VISIBLE);
     }
     
  

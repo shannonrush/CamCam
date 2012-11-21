@@ -13,18 +13,16 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
-import org.json.JSONException;
-import org.json.JSONObject;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.util.Log;
-import android.widget.EditText;
 
 import com.google.android.gcm.GCMBaseIntentService;
-
 
 
 public class GCMIntentService extends GCMBaseIntentService {
@@ -47,9 +45,12 @@ public class GCMIntentService extends GCMBaseIntentService {
 	}
 	
 	@Override
-	protected void onMessage(Context arg0, Intent arg1) {
-		// TODO Auto-generated method stub
-		
+	protected void onMessage(Context context, Intent intent) {
+		Log.d("GCMIntentService", "in onMessage");
+//		String requested = intent.getStringExtra("requested");
+    	Intent feedIntent = new Intent(this, ProvideFeedActivity.class);
+    	feedIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(feedIntent);
 	}
 
 	@Override
@@ -81,10 +82,9 @@ public class GCMIntentService extends GCMBaseIntentService {
                 UrlEncodedFormEntity ent = new UrlEncodedFormEntity(params,HTTP.UTF_8);
                 post.setEntity(ent);
                 HttpResponse responsePOST = client.execute(post);  
-                HttpEntity resEntity = responsePOST.getEntity();  
-                if (resEntity != null) {
-                	result = EntityUtils.toString(resEntity);
-                }
+                HttpEntity entity = responsePOST.getEntity();  
+                if (entity != null) 
+                	result = EntityUtils.toString(entity);
             } catch (Exception e) {
                 e.printStackTrace();
             }            
@@ -99,6 +99,5 @@ public class GCMIntentService extends GCMBaseIntentService {
             CONTEXT.sendBroadcast(intent);
     	}
     }
-    
-
+	
 }

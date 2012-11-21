@@ -1,12 +1,19 @@
 package com.rushdevo.camcam;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -29,28 +36,18 @@ public class ShowFeedsActivity extends ListActivity {
 	private ArrayAdapter<String> adapter;
 	private JSONArray deviceArray;
 	private ArrayList<String> deviceNames;
+	private String selectedDeviceID;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_show_feeds);
-		getActionBar().setDisplayHomeAsUpEnabled(true);
 		new GetUserDevicesTask().execute();
 	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.activity_show_feeds, menu);
-		ListView listView = (ListView)findViewById(R.id.device_list);
-		listView.setClickable(true);
-		listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-		  @Override
-		  public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-			 JSONObject device = (JSONObject) deviceArray.get(position);
-		     new GetFeedsForDeviceTask().execute((String) device.get("id"));
-		  }
-		});
 		return true;
 	}
 
@@ -58,13 +55,6 @@ public class ShowFeedsActivity extends ListActivity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case android.R.id.home:
-			// This ID represents the Home or Up button. In the case of this
-			// activity, the Up button is shown. Use NavUtils to allow users
-			// to navigate up one level in the application structure. For
-			// more details, see the Navigation pattern on Android Design:
-			//
-			// http://developer.android.com/design/patterns/navigation.html#up-vs-back
-			//
 			NavUtils.navigateUpFromSameTask(this);
 			return true;
 		}
@@ -74,6 +64,18 @@ public class ShowFeedsActivity extends ListActivity {
 	// feed list
 	
 	private void initializeList() {
+		ListView listView = getListView();
+		listView.setClickable(true);
+		listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+		  @Override
+		  public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+			 Log.d("ShowFeedsActivity", "in onItemClick");
+			 JSONObject device = (JSONObject) deviceArray.get(position);
+			 selectedDeviceID = String.valueOf(device.get("id"));
+		     new RequestFeedTask().execute();
+		  }
+		});
         adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, deviceNames);
         setListAdapter(adapter);
 	}
@@ -92,7 +94,7 @@ public class ShowFeedsActivity extends ListActivity {
 			    HttpEntity entity = response.getEntity();
 			    result = EntityUtils.toString(entity);
 			} catch (Exception e) {
-			    Log.d("ShowFeedsActivity", "Network exception");
+			    Log.d("ShowFeedsActivity", "Network exception "+e);
 			}
 			return result;
         }		
@@ -110,20 +112,65 @@ public class ShowFeedsActivity extends ListActivity {
 		}	
 	}
 	
-	public final class GetFeedsForDeviceTask extends AsyncTask<String, Boolean, String> {
+	public final class RequestFeedTask extends AsyncTask<String, Boolean, String> {
 
 		@Override
 		protected String doInBackground(String... params) {
-			// TODO Auto-generated method stub
-			return null;
+			String result = "";
+			HttpClient httpclient = new DefaultHttpClient();
+			String url = "http://"+CamCamActivity.DOMAIN+"/devices/"+selectedDeviceID+"/request_feed.json";
+		    HttpPost httppost = new HttpPost(url);
+
+		    try {
+		        HttpResponse response = httpclient.execute(httppost);
+		        result = response.getStatusLine().toString();
+		        Log.d("RequestFeedTask", "GCM Response: "+response.getEntity());
+		    } catch (ClientProtocolException e) {
+		    	Log.d("RequestFeedTask", "ClientProtocolException: "+e);
+		    } catch (IOException e) {
+		    	Log.d("RequestFeedTask", "IOException: "+e);
+		    }
+			return result;
+
 		}
 		
 		@Override
 		protected void onPostExecute(String result) {
-			
+			// start polling for feed 
+			new PollForFeedTask().execute();
 		}
 		
 	}
 	
-
+	public final class PollForFeedTask extends AsyncTask<String, Boolean, String> {
+		
+		@Override
+		protected String doInBackground(String... params) {
+			String result = "";
+			try {
+			    HttpClient httpClient = new DefaultHttpClient();
+			    String url = "http://"+CamCamActivity.DOMAIN+"/devices/"+selectedDeviceID+"/feeds.json";
+			    HttpResponse response = httpClient.execute(new HttpGet(url));
+			    HttpEntity entity = response.getEntity();
+			    result = EntityUtils.toString(entity);
+			} catch (Exception e) {
+			    Log.d("ShowFeedsActivity", "Network exception "+e);
+			}
+			return result;
+		}
+		
+		@Override
+		protected void onPostExecute(String result) {
+			Object obj=JSONValue.parse(result);
+			JSONObject json = (JSONObject) obj;
+			String status = (String)json.get("status");
+			Log.d("PollForFeedTask", "Poll result status: "+status);
+			if (status.equals("unavailable")) {
+				
+				new PollForFeedTask().execute();
+			} else if (status.equals("available")) {
+				Log.d("PollForFeedTask", "MP4 url: "+(String)json.get("video_url"));
+			}
+		}
+	}
 }
