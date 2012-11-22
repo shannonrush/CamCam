@@ -6,7 +6,7 @@ Use any Android device - including Google TV - to access the live video feed fro
 
 Interesting technical details about this project:
 
--- Uses the super fast Google Cloud Messaging to send video requests from requesting device to requested device
-	Learn about GCM: http://developer.android.com/guide/google/gcm
+* Uses the super fast Google Cloud Messaging to send video requests from requesting device to requested device
+** Learn about GCM: http://developer.android.com/guide/google/gcm
 
 
