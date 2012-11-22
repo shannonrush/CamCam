@@ -56,7 +56,7 @@ public class ProvideFeedActivity extends Activity implements SurfaceHolder.Callb
         mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
     	mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
-    	mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.MPEG_4_SP);
+    	mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
     	mediaRecorder.setOrientationHint(90);
     	mediaRecorder.setVideoSize(1280, 720);
     	mediaRecorder.setVideoFrameRate(30);
@@ -95,6 +95,7 @@ public class ProvideFeedActivity extends Activity implements SurfaceHolder.Callb
     
     private void stopRecording() {
     	Log.d("ProvideFeedActivity", "in stopRecording");
+    	retries = 0;
     	new UploadRecordingTask().execute();
     	mediaRecorder.reset();
     }
