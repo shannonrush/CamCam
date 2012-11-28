@@ -30,10 +30,12 @@ import android.widget.ListView;
 
 public class ShowFeedsActivity extends ListActivity {
 
+	private String TAG = "ShowFeedsActivity";
 	private ArrayAdapter<String> adapter;
 	private JSONArray deviceArray;
 	private ArrayList<String> deviceNames;
 	private String selectedDeviceID;
+	
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +63,7 @@ public class ShowFeedsActivity extends ListActivity {
 	// feed list
 	
 	private void initializeList() {
+		Log.d(TAG,"initializing list");
 		ListView listView = getListView();
 		listView.setClickable(true);
 		listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -83,10 +86,12 @@ public class ShowFeedsActivity extends ListActivity {
 
 		@Override
 		protected String doInBackground(String... params) {
+			Log.d(TAG, "Getting user devices");
 			String result = "";
 			try {
 			    HttpClient httpClient = new DefaultHttpClient();
 			    String url = "http://"+CamCamActivity.DOMAIN+"/users/"+CamCamActivity.USER_ID+"/devices.json";
+			    Log.d(TAG,"URL: "+url);
 			    HttpResponse response = httpClient.execute(new HttpGet(url));
 			    HttpEntity entity = response.getEntity();
 			    result = EntityUtils.toString(entity);
@@ -134,7 +139,7 @@ public class ShowFeedsActivity extends ListActivity {
 		@Override
 		protected void onPostExecute(String result) {
 			// start polling for feed 
-			new PollForFeedTask().execute();
+//			new PollForFeedTask().execute();
 		}
 		
 	}

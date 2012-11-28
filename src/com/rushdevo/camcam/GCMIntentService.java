@@ -1,5 +1,11 @@
 package com.rushdevo.camcam;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,9 +20,6 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -47,10 +50,9 @@ public class GCMIntentService extends GCMBaseIntentService {
 	@Override
 	protected void onMessage(Context context, Intent intent) {
 		Log.d("GCMIntentService", "in onMessage");
-//		String requested = intent.getStringExtra("requested");
-    	Intent feedIntent = new Intent(this, ProvideFeedActivity.class);
-    	feedIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(feedIntent);
+		Intent feedIntent = new Intent(this,ProvideFeedService.class);
+//		feedIntent.putExtra("port", intent.getIntExtra("port", 3001));
+		context.startService(feedIntent);
 	}
 
 	@Override

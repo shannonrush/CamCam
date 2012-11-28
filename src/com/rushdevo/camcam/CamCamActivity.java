@@ -1,5 +1,12 @@
 package com.rushdevo.camcam;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.net.UnknownHostException;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -9,6 +16,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -21,9 +29,14 @@ import com.google.android.gcm.GCMRegistrar;
 
 
 public class CamCamActivity extends Activity {
-	    
+	  
+	private String TAG = "CamCamActivity";
+	
+	//public static String HOST = "www.epiccamcam.com";
 	//public static String DOMAIN = "www.epiccamcam.com";
-	public static String DOMAIN = "10.0.1.28:3000"; // development
+	public static String HOST = "10.0.1.32"; // development
+	public static String DOMAIN = HOST+":3000"; // development
+	
 	public static String DEVICE_ID = null;
 	public static String DEVICE_NAME = null;
 	public static String USER_ID = "1"; // temporarily hard coded
@@ -164,4 +177,5 @@ public class CamCamActivity extends Activity {
         startActivity(intent);      
         finish();
     }
+    
 }

@@ -78,6 +78,12 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.rushdevo.camcam.ShowFeedsActivity" />
         </activity>
+
+        <service
+            android:name="com.rushdevo.camcam.ProvideFeedService"
+            android:enabled="true"
+            android:exported="false" >
+        </service>
     </application>
 
 </manifest>
