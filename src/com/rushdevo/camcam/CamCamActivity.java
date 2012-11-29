@@ -1,12 +1,5 @@
 package com.rushdevo.camcam;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.net.InetAddress;
-import java.net.Socket;
-import java.net.UnknownHostException;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -16,7 +9,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -51,6 +43,11 @@ public class CamCamActivity extends Activity {
         
         registerReceiver(registrationReceiver, new IntentFilter("ON_POST_EXECUTE"));
         initializeDeviceRegistrationStatus();
+        
+        // temporary for testing new socket stream
+    	Intent feedIntent = new Intent(this, ProvideFeedActivity.class);
+        feedIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+    	startActivity(feedIntent);  
 	}
 	
     @Override

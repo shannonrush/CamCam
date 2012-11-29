@@ -1,11 +1,5 @@
 package com.rushdevo.camcam;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.net.InetAddress;
-import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,9 +44,9 @@ public class GCMIntentService extends GCMBaseIntentService {
 	@Override
 	protected void onMessage(Context context, Intent intent) {
 		Log.d("GCMIntentService", "in onMessage");
-		Intent feedIntent = new Intent(this,ProvideFeedService.class);
-//		feedIntent.putExtra("port", intent.getIntExtra("port", 3001));
-		context.startService(feedIntent);
+    	Intent feedIntent = new Intent(this, ProvideFeedActivity.class);
+        feedIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+    	startActivity(feedIntent);  
 	}
 
 	@Override
@@ -102,4 +96,5 @@ public class GCMIntentService extends GCMBaseIntentService {
     	}
     }
 	
+
 }

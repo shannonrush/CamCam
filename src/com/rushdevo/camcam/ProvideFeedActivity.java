@@ -1,7 +1,11 @@
 package com.rushdevo.camcam;
 
 import java.io.File;
+import java.io.FileDescriptor;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -14,22 +18,29 @@ import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.media.MediaRecorder;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.ParcelFileDescriptor;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.Window;
 import android.view.WindowManager;
 
+
+
 public class ProvideFeedActivity extends Activity implements SurfaceHolder.Callback {
-	MediaRecorder mediaRecorder;
-    SurfaceHolder surfaceHolder;
-    String filePath = null;
-	int retries = 0;
+	private String TAG = "ProvideFeedActivity";
+	
+	private MediaRecorder mediaRecorder;
+    private SurfaceHolder surfaceHolder;
+    private String filePath = null;
+    
+    int retries = 0;
 
     
     @SuppressWarnings("deprecation")
@@ -37,6 +48,7 @@ public class ProvideFeedActivity extends Activity implements SurfaceHolder.Callb
     public void onCreate(Bundle savedInstanceState) {
     	Log.d("ProvideFeedActivity", "in provide feed activity");
         super.onCreate(savedInstanceState);
+        
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         getWindow().addFlags( WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON );
@@ -60,9 +72,31 @@ public class ProvideFeedActivity extends Activity implements SurfaceHolder.Callb
     	mediaRecorder.setOrientationHint(90);
     	mediaRecorder.setVideoSize(1280, 720);
     	mediaRecorder.setVideoFrameRate(30);
-
-    	filePath = getOutputMediaFile().toString();
-        mediaRecorder.setOutputFile(filePath);
+//    	filePath = getOutputFilePath();
+//        mediaRecorder.setOutputFile(filePath);
+    }
+    
+    public final class StreamViaSocketTask extends AsyncTask<String,Boolean,String> {
+    	@Override
+    	protected String doInBackground(String...params) {
+    		InetAddress address = null;
+    		Socket socket = null;
+            try {
+    			address = InetAddress.getByName(CamCamActivity.HOST);
+    		} catch (UnknownHostException e) {
+    			e.printStackTrace();
+    		}
+            try {
+            	socket = new Socket(address, 2000);
+    		} catch (IOException e) {
+    			e.printStackTrace();
+    		}
+            ParcelFileDescriptor pfd = ParcelFileDescriptor.fromSocket(socket);
+            FileDescriptor fd = pfd.getFileDescriptor();
+            mediaRecorder.setOutputFile(fd);
+        	prepareRecorder();
+            return "";
+    	}
     }
     
     private void prepareRecorder() {
@@ -83,7 +117,7 @@ public class ProvideFeedActivity extends Activity implements SurfaceHolder.Callb
     private void startRecording() {
     	mediaRecorder.start();
 		long timeStamp = System.currentTimeMillis() / 1000;
-    	int videoLength = 5;
+    	int videoLength = 30;
     	int seconds = videoLength;
 		while (seconds > 0) {
 			int diff = videoLength - (int)((System.currentTimeMillis() / 1000) - timeStamp);
@@ -93,11 +127,63 @@ public class ProvideFeedActivity extends Activity implements SurfaceHolder.Callb
     	stopRecording();
     }
     
+    private void startProvideFeedService() {
+    	long timeStamp = System.currentTimeMillis() / 1000;
+    	int wait = 5;
+    	int seconds = wait;
+		while (seconds > 0) {
+			int diff = wait - (int)((System.currentTimeMillis() / 1000) - timeStamp);
+			if (diff < 0) diff = 0;
+			if (diff != seconds) seconds = diff;
+		}
+    	Intent feedIntent = new Intent(this,ProvideFeedService.class);
+    	feedIntent.putExtra("filePath", filePath);
+    	Context context = getApplicationContext();
+    	context.startService(feedIntent);
+    }
+    
     private void stopRecording() {
     	Log.d("ProvideFeedActivity", "in stopRecording");
     	retries = 0;
     	new UploadRecordingTask().execute();
     	mediaRecorder.reset();
+    }
+    
+    
+    // SurfaceHolder Callbacks
+
+    public void surfaceCreated(SurfaceHolder holder) {
+    	new StreamViaSocketTask().execute();
+    }
+
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+    }
+
+    public void surfaceDestroyed(SurfaceHolder holder) {
+        mediaRecorder.release();
+    }
+  	
+    private String getOutputFilePath() {
+        // To be safe, you should check that the SDCard is mounted
+        // using Environment.getExternalStorageState() before doing this.
+    	Log.d(TAG,"getting output file path");
+        File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
+                  Environment.DIRECTORY_PICTURES), "CamCam");
+
+
+        // Create the storage directory if it does not exist
+        if (! mediaStorageDir.exists()){
+            if (! mediaStorageDir.mkdirs()){
+                Log.d("ProvideFeedActivity", "failed to create directory");
+                return null;
+            }
+        }
+
+        // Create a media file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        File mediaFile = new File(mediaStorageDir.getPath() + File.separator + CamCamActivity.DEVICE_ID + "_"+ timeStamp + ".mp4");
+       
+        return mediaFile.toString();
     }
     
     public final class UploadRecordingTask extends AsyncTask<String, Boolean, String> {
@@ -154,41 +240,4 @@ public class ProvideFeedActivity extends Activity implements SurfaceHolder.Callb
     		}
     	}
     }
-    
-    private File getOutputMediaFile() {
-        // To be safe, you should check that the SDCard is mounted
-        // using Environment.getExternalStorageState() before doing this.
-
-        File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
-                  Environment.DIRECTORY_PICTURES), "CamCam");
-
-
-        // Create the storage directory if it does not exist
-        if (! mediaStorageDir.exists()){
-            if (! mediaStorageDir.mkdirs()){
-                Log.d("ProvideFeedActivity", "failed to create directory");
-                return null;
-            }
-        }
-
-        // Create a media file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        File mediaFile = new File(mediaStorageDir.getPath() + File.separator + CamCamActivity.DEVICE_ID + "_"+ timeStamp + ".mp4");
-       
-        return mediaFile;
-    }
-    
-    // SurfaceHolder Callbacks
-
-    public void surfaceCreated(SurfaceHolder holder) {
-    	prepareRecorder();
-    }
-
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-    }
-
-    public void surfaceDestroyed(SurfaceHolder holder) {
-        mediaRecorder.release();
-    }
-  	
 }
